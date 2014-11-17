@@ -255,6 +255,25 @@ class Ticket {
         # XXX: Support variable email address (for CCs)
         return md5($this->getId() . strtolower($this->getEmail()) . SECRET_SALT);
     }
+    
+    function getAuthTokenClient($algo=1) {
+         //Format: // <user type><algo id used>x<pack of uid & tid><hash of the algo>
+        $authtoken = sprintf('%s%dx%s',
+                'o',
+                $algo,
+                Base32::encode(pack('VV',$this->getOwnerId(), $this->getId())));
+
+        switch($algo) {
+            case 1:
+                $authtoken .= substr(base64_encode(
+                            md5($this->getOwnerId().$this->getCreateDate().$this->getId().SECRET_SALT, true)), 8);
+                break;
+            default:
+                return null;
+        }
+
+        return $authtoken;
+    }
 
     function getName(){
         if ($o = $this->getOwner())
@@ -1334,6 +1353,11 @@ class Ticket {
             case 'client_link':
                 return sprintf('%s/view.php?t=%s',
                         $cfg->getBaseUrl(), $this->getNumber());
+                break;
+            case 'client_link_auto':
+                return sprintf('%s/view.php?auth=%s',
+                        $cfg->getBaseUrl(),
+                        urlencode($this->getAuthTokenClient()));
                 break;
             case 'staff_link':
                 return sprintf('%s/scp/tickets.php?id=%d', $cfg->getBaseUrl(), $this->getId());
