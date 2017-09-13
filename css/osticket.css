@@ -85,3 +85,15 @@ input.dp {
 .delete-draft:hover {
     background-color: #fc9f41 !important;
 }
+
+.ticket-subject-sticky {
+  display: none;
+}
+
+.sticky.bar.fixed .ticket-number-sticky {
+  font-size: 13px;
+}
+
+.sticky.bar.fixed .ticket-subject-sticky { 
+  display: block;
+}
