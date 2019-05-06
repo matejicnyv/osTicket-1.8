@@ -1,38 +1,38 @@
 <?php
 if(!defined('OSTADMININC') || !$thisstaff || !$thisstaff->isAdmin()) die('Access Denied');
 
-$info=array();
-$qstr='';
+$info=$qs= array();
 if($rule && $_REQUEST['a']!='add'){
     $title=__('Update Ban Rule');
     $action='update';
     $submit_text=__('Update');
     $info=$rule->getInfo();
     $info['id']=$rule->getId();
-    $qstr.='&id='.$rule->getId();
+    $qs += array('id' => $rule->getId());
 }else {
     $title=__('Add New Email Address to Ban List');
     $action='add';
     $submit_text=__('Add');
     $info['isactive']=isset($info['isactive'])?$info['isactive']:1;
-    $qstr.='&a='.urlencode($_REQUEST['a']);
+    $qs += array('a' => $_REQUEST['a']);
 }
+
 $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
 ?>
-<form action="banlist.php?<?php echo $qstr; ?>" method="post" id="save">
+<form action="banlist.php?<?php echo Http::build_query($qs); ?>" method="post" class="save">
  <?php csrf_token(); ?>
  <input type="hidden" name="do" value="<?php echo $action; ?>">
  <input type="hidden" name="a" value="<?php echo Format::htmlchars($_REQUEST['a']); ?>">
  <input type="hidden" name="id" value="<?php echo $info['id']; ?>">
- <h2><?php echo __('Manage Email Ban Rule');?>
+
+    <h2><?php echo $title; ?>
     <i class="help-tip icon-question-sign" href="#ban_list"></i>
     </h2>
  <table class="form_table" width="940" border="0" cellspacing="0" cellpadding="2">
     <thead>
         <tr>
             <th colspan="2">
-                <h4><?php echo $title; ?></h4>
-                <em><?php echo __('Valid email address required');?></em>
+                <em><?php echo __('Valid email address is required');?></em>
             </th>
         </tr>
     </thead>
@@ -58,7 +58,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
         </tr>
         <tr>
             <th colspan="2">
-                <em><strong><?php echo __('Internal notes');?></strong>: <?php echo __('Admin notes');?>&nbsp;</em>
+                <em><strong><?php echo __('Internal Notes');?></strong>: <?php echo __('Admin Notes');?>&nbsp;</em>
             </th>
         </tr>
         <tr>

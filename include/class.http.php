@@ -27,20 +27,26 @@ class Http {
         case 404: return '404 Not Found';
         case 405: return '405 Method Not Allowed';
         case 416: return '416 Requested Range Not Satisfiable';
+        case 418: return "418 I'm a teapot";
         case 422: return '422 Unprocessable Entity';
         default:  return '500 Internal Server Error';
         endswitch;
     }
 
-    function response($code,$content,$contentType='text/html',$charset='UTF-8') {
+    function response($code,$content=false,$contentType='text/html',$charset='UTF-8') {
 
         header('HTTP/1.1 '.Http::header_code_verbose($code));
 		header('Status: '.Http::header_code_verbose($code)."\r\n");
 		header("Connection: Close\r\n");
-		header("Content-Type: $contentType; charset=$charset\r\n");
-        header('Content-Length: '.strlen($content)."\r\n\r\n");
-       	print $content;
-        exit;
+        $ct = "Content-Type: $contentType";
+        if ($charset)
+            $ct .= "; charset=$charset";
+        header($ct);
+        if ($content) {
+            header('Content-Length: '.strlen($content)."\r\n\r\n");
+            print $content;
+            exit;
+        }
     }
 
     function redirect($url,$delay=0,$msg='') {
@@ -61,16 +67,20 @@ class Http {
         exit;
     }
 
-    function cacheable($etag, $modified, $ttl=3600) {
+    function cacheable($etag, $modified=false, $ttl=3600) {
         // Thanks, http://stackoverflow.com/a/1583753/1025836
-        $last_modified = Misc::db2gmtime($modified);
-        header("Last-Modified: ".date('D, d M y H:i:s', $last_modified)." GMT", false);
+        // Timezone doesn't matter here — but the time needs to be
+        // consistent round trip to the browser and back.
+        if ($modified) {
+            $last_modified = strtotime($modified." GMT");
+            header("Last-Modified: ".date('D, d M Y H:i:s', $last_modified)." GMT", false);
+        }
         header('ETag: "'.$etag.'"');
         header("Cache-Control: private, max-age=$ttl");
-        header('Expires: ' . gmdate(DATE_RFC822, time() + $ttl)." GMT");
+        header('Expires: ' . gmdate('D, d M Y H:i:s', Misc::gmtime() + $ttl)." GMT");
         header('Pragma: private');
-        if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $last_modified ||
-            @trim($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
+        if (($modified && @strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $last_modified)
+            || @trim($_SERVER['HTTP_IF_NONE_MATCH'], '" ') == $etag) {
                 header("HTTP/1.1 304 Not Modified");
                 exit();
         }
@@ -96,10 +106,12 @@ class Http {
     }
 
     function download($filename, $type, $data=null, $disposition='attachment') {
+        if (strpos($type, 'image/') !== 0 || preg_match('/image\/.*\+.*/', $type))
+          $disposition='attachment';
+
         header('Pragma: private');
-        header('Expires: 0');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-        header('Cache-Control: private');
+        header('Cache-Control: private', false);
         header('Content-Type: '.$type);
         header(sprintf('Content-Disposition: %s; %s',
             $disposition,
@@ -110,6 +122,17 @@ class Http {
             print $data;
             exit;
         }
+    }
+
+    static function build_query($vars, $encode=true, $separator='&amp;') {
+
+        if (!$vars)
+            return '';
+
+        if ($encode)
+            $vars = Format::htmlchars($vars);
+
+        return http_build_query($vars, '', $separator);
     }
 }
 ?>

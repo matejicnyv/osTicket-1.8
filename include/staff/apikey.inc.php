@@ -1,36 +1,37 @@
 <?php
 if(!defined('OSTADMININC') || !$thisstaff || !$thisstaff->isAdmin()) die('Access Denied');
 
-$info=array();
-$qstr='';
+$info=$qs = array();
 if($api && $_REQUEST['a']!='add'){
     $title=__('Update API Key');
     $action='update';
     $submit_text=__('Save Changes');
     $info=$api->getHashtable();
-    $qstr.='&id='.$api->getId();
+    $qs += array('id' => $api->getId());
 }else {
     $title=__('Add New API Key');
     $action='add';
     $submit_text=__('Add Key');
     $info['isactive']=isset($info['isactive'])?$info['isactive']:1;
-    $qstr.='&a='.urlencode($_REQUEST['a']);
+    $qs += array('a' => $_REQUEST['a']);
 }
 $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
 ?>
-<form action="apikeys.php?<?php echo $qstr; ?>" method="post" id="save">
+<form action="apikeys.php?<?php echo Http::build_query($qs); ?>" method="post" class="save">
  <?php csrf_token(); ?>
  <input type="hidden" name="do" value="<?php echo $action; ?>">
  <input type="hidden" name="a" value="<?php echo Format::htmlchars($_REQUEST['a']); ?>">
  <input type="hidden" name="id" value="<?php echo $info['id']; ?>">
- <h2><?php echo __('API Key');?>
+ <h2><?php echo $title; ?>
+    <?php if (isset($info['ipaddr'])) { ?><small>
+    — <?php echo $info['ipaddr']; ?></small>
+    <?php } ?>
     <i class="help-tip icon-question-sign" href="#api_key"></i>
     </h2>
  <table class="form_table" width="940" border="0" cellspacing="0" cellpadding="2">
     <thead>
         <tr>
             <th colspan="2">
-                <h4><?php echo $title; ?></h4>
                 <em><?php echo __('API Key is auto-generated. Delete and re-add to change the key.');?></em>
             </th>
         </tr>
@@ -71,7 +72,8 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
             </td>
             <td>
                 <span>
-                <input type="text" size="30" name="ipaddr" value="<?php echo $info['ipaddr']; ?>">
+                <input type="text" size="30" name="ipaddr" value="<?php echo $info['ipaddr']; ?>"i
+                    autofocus>
                 &nbsp;<span class="error">*&nbsp;<?php echo $errors['ipaddr']; ?></span>
                 <i class="help-tip icon-question-sign" href="#ip_addr"></i>
                 </span>
@@ -101,7 +103,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
         </tr>
         <tr>
             <th colspan="2">
-                <em><strong><?php echo __('Admin Notes');?></strong>: <?php echo __('Internal notes.');?>&nbsp;</em>
+                <em><strong><?php echo __('Internal Notes');?></strong>: <?php echo __("Be liberal, they're internal");?></em>
             </th>
         </tr>
         <tr>
@@ -112,7 +114,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
         </tr>
     </tbody>
 </table>
-<p style="padding-left:225px;">
+<p style="text-align:center">
     <input type="submit" name="submit" value="<?php echo $submit_text; ?>">
     <input type="reset"  name="reset"  value="<?php echo __('Reset');?>">
     <input type="button" name="cancel" value="<?php echo __('Cancel');?>" onclick='window.location.href="apikeys.php"'>

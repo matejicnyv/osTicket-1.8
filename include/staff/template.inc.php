@@ -1,36 +1,38 @@
 <?php
 if(!defined('OSTADMININC') || !$thisstaff || !$thisstaff->isAdmin()) die('Access Denied');
 
-$info=array();
-$qstr='';
+$info = $qs = array();
 if($template && $_REQUEST['a']!='add'){
     $title=__('Update Template');
     $action='update';
     $submit_text=__('Save Changes');
     $info=$template->getInfo();
     $info['tpl_id']=$template->getId();
-    $qstr.='&tpl_id='.$template->getId();
+    $qs += array('tpl_id' => $template->getId());
 }else {
     $title=__('Add New Template');
     $action='add';
     $submit_text=__('Add Template');
     $info['isactive']=isset($info['isactive'])?$info['isactive']:0;
-    $info['lang_id'] = $cfg->getSystemLanguage();
-    $qstr.='&a='.urlencode($_REQUEST['a']);
+    $info['lang_id'] = $cfg->getPrimaryLanguage();
+    $qs += array('a' => $_REQUEST['a']);
 }
 $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
 ?>
-<form action="templates.php?<?php echo $qstr; ?>" method="post" id="save">
+<form action="templates.php?<?php echo Http::build_query($qs); ?>" method="post" class="save">
  <?php csrf_token(); ?>
  <input type="hidden" name="do" value="<?php echo $action; ?>">
  <input type="hidden" name="a" value="<?php echo Format::htmlchars($_REQUEST['a']); ?>">
  <input type="hidden" name="tpl_id" value="<?php echo $info['tpl_id']; ?>">
- <h2><?php echo __('Email Template');?></h2>
+ <h2><?php echo $title; ?>
+    <?php if (isset($info['name'])) { ?><small>
+    — <?php echo $info['name']; ?></small>
+     <?php } ?>
+</h2>
  <table class="form_table" width="940" border="0" cellspacing="0" cellpadding="2">
     <thead>
         <tr>
             <th colspan="2">
-                <h4><?php echo $title; ?></h4>
                 <em><?php echo __('Template information');?></em>
             </th>
         </tr>
@@ -92,7 +94,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
             if (isset($impl[$cn])) {
                 echo sprintf('<tr><td colspan="2">&nbsp;<strong><a href="templates.php?id=%d&a=manage">%s</a></strong>, <span class="faded">%s</span><br/>&nbsp;%s</td></tr>',
                 $impl[$cn]->getId(), Format::htmlchars(__($info['name'])),
-                sprintf(__('Updated %s'), Format::db_datetime($impl[$cn]->getLastUpdated())),
+                sprintf(__('Updated %s'), Format::datetime($impl[$cn]->getLastUpdated())),
                 Format::htmlchars(__($info['desc'])));
             } else {
                 echo sprintf('<tr><td colspan=2>&nbsp;<strong><a
@@ -141,7 +143,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
 <?php foreach($langs as $l) {
     $selected = ($info['lang_id'] == $l['code']) ? 'selected="selected"' : ''; ?>
                     <option value="<?php echo $l['code']; ?>" <?php echo $selected;
-                        ?>><?php echo $l['desc']; ?></option>
+                        ?>><?php echo Internationalization::getLanguageDescription($l['code']); ?></option>
 <?php } ?>
                 </select>
                 &nbsp;<span class="error">*&nbsp;<?php echo $errors['lang_id']; ?></span>
@@ -154,7 +156,7 @@ $info=Format::htmlchars(($errors && $_POST)?$_POST:$info);
         <tr>
             <th colspan="2">
                 <em><strong><?php echo __('Internal Notes');?></strong>: <?php echo __(
-                "be liberal, they're internal");?></em>
+                "Be liberal, they're internal");?></em>
             </th>
         </tr>
         <tr>

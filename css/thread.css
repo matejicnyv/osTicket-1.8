@@ -509,20 +509,3 @@ p.MsoNormal, li.MsoNormal, div.MsoNormal,
 p.MsoPlainText, li.MsoPlainText, div.MsoPlainText
     {margin:0cm;
     margin-bottom:.0001pt;}
-
-
-.ticket-subject-sticky {
-  display: none;
-}
-
-.sticky.bar.fixed .ticket-number-sticky {
-  font-size: 13px;
-}
-
-.sticky.bar.fixed .ticket-subject-sticky { 
-    display: inline-block;
-    margin-top: 0;
-    padding-bottom: 0;
-    padding-top: 0;
-    margin-bottom: -5px;
-}

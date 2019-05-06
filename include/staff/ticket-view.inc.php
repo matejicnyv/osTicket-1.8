@@ -38,7 +38,8 @@ elseif ($ticket->isAssigned()
 if (!$errors['err']) {
 
     if ($lock && $lock->getStaffId()!=$thisstaff->getId())
-        $errors['err'] = sprintf(__('This ticket is currently locked by %s'),
+        $errors['err'] = sprintf(__('%s is currently locked by %s'),
+                __('This ticket'),
                 $lock->getStaffName());
     elseif (($emailBanned=Banlist::isBanned($ticket->getEmail())))
         $errors['err'] = __('Email is in banlist! Must be removed before any reply/response');
@@ -73,7 +74,7 @@ if($ticket->isOverdue())
             } ?>
             <span class="action-button pull-right" data-placement="bottom" data-dropdown="#action-dropdown-print" data-toggle="tooltip" title="<?php echo __('Print'); ?>">
                 <i class="icon-caret-down pull-right"></i>
-                <a id="ticket-print" href="tickets.php?id=<?php echo $ticket->getId(); ?>&a=print"><i class="icon-print"></i></a>
+                <a id="ticket-print" aria-label="<?php echo __('Print'); ?>" href="tickets.php?id=<?php echo $ticket->getId(); ?>&a=print"><i class="icon-print"></i></a>
             </span>
             <div id="action-dropdown-print" class="action-dropdown anchor-right">
               <ul>
@@ -219,11 +220,10 @@ if($ticket->isOverdue())
                 ?>
            </div>
         <div class="flush-left">
-             <h2 class="ticket-number-sticky"><a href="tickets.php?id=<?php echo $ticket->getId(); ?>"
+             <h2><a href="tickets.php?id=<?php echo $ticket->getId(); ?>"
              title="<?php echo __('Reload'); ?>"><i class="icon-refresh"></i>
              <?php echo sprintf(__('Ticket #%s'), $ticket->getNumber()); ?></a>
             </h2>
-            <h3 class="ticket-subject-sticky"><?php echo $ticket->getSubject(); ?></h3>
         </div>
     </div>
   </div>
@@ -537,7 +537,7 @@ if ($errors['err'] && isset($_POST['a'])) {
     </ul>
     <?php
     if ($role->hasPerm(TicketModel::PERM_REPLY)) { ?>
-    <form id="reply" class="tab_content spellcheck exclusive"
+    <form id="reply" class="tab_content spellcheck exclusive save"
         data-lock-object-id="ticket/<?php echo $ticket->getId(); ?>"
         data-lock-id="<?php echo $mylock ? $mylock->getId() : ''; ?>"
         action="tickets.php?id=<?php
@@ -734,7 +734,7 @@ if ($errors['err'] && isset($_POST['a'])) {
     </form>
     <?php
     } ?>
-    <form id="note" class="hidden tab_content spellcheck exclusive"
+    <form id="note" class="hidden tab_content spellcheck exclusive save"
         data-lock-object-id="ticket/<?php echo $ticket->getId(); ?>"
         data-lock-id="<?php echo $mylock ? $mylock->getId() : ''; ?>"
         action="tickets.php?id=<?php echo $ticket->getId(); ?>#note"
@@ -868,7 +868,7 @@ if ($errors['err'] && isset($_POST['a'])) {
     <a class="close" href=""><i class="icon-remove-circle"></i></a>
     <hr/>
     <p class="confirm-action" style="display:none;" id="claim-confirm">
-        <?php echo __('Are you sure you want to <b>claim</b> (self assign) this ticket?');?>
+        <?php echo sprintf(__('Are you sure you want to <b>claim</b> (self assign) %s?'), __('this ticket'));?>
     </p>
     <p class="confirm-action" style="display:none;" id="answered-confirm">
         <?php echo __('Are you sure you want to flag the ticket as <b>answered</b>?');?>

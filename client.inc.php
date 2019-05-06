@@ -29,7 +29,7 @@ define('OSTCLIENTINC',TRUE);
 define('ASSETS_PATH',ROOT_PATH.'assets/default/');
 
 //Check the status of the HelpDesk.
-if (!in_array(strtolower(basename($_SERVER['SCRIPT_NAME'])), array('logo.php',))
+if (!in_array(strtolower(basename($_SERVER['SCRIPT_NAME'])), array('logo.php','file.php'))
         && !(is_object($ost) && $ost->isSystemOnline())) {
     include(ROOT_DIR.'offline.php');
     exit;
@@ -48,7 +48,7 @@ $nav=null;
 $thisclient = UserAuthenticationBackend::getUser();
 
 if (isset($_GET['lang']) && $_GET['lang']) {
-    $_SESSION['client:lang'] = $_GET['lang'];
+    Internationalization::setCurrentLanguage($_GET['lang']);
 }
 
 // Bootstrap gettext translations as early as possible, but after attempting
@@ -76,6 +76,7 @@ $ost->addExtraHeader('<meta name="csrf_token" content="'.$ost->getCSRFToken().'"
 /* Client specific defaults */
 define('PAGE_LIMIT', DEFAULT_PAGE_LIMIT);
 
+require(INCLUDE_DIR.'class.nav.php');
 $nav = new UserNav($thisclient, 'home');
 
 $exempt = in_array(basename($_SERVER['SCRIPT_NAME']), array('logout.php', 'ajax.php', 'logs.php', 'upgrade.php'));
